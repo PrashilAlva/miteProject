@@ -80,5 +80,10 @@ def hello():
     year=dbb.get_academic_year()
     return jsonify({"year":year})
 
+@app.route("/semesters")
+def sem():
+    sem=dbb.get_semester()
+    return jsonify(sem)
+
 if __name__ == "__main__":
     app.run(port=8088,debug=True)

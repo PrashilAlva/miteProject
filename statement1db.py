@@ -12,3 +12,18 @@ def get_academic_year():
         {"$project":{"AcademicYear":"$_id","_id":0}}
     ])
     return [i for i in data]
+
+
+def get_semester():
+    data=collections.find({})
+    dataa=list()
+    for ele in data:
+        dataa.append(ele)
+    container=set()
+    for ele in dataa:
+        container.add(ele["departments"][0]["termNumber"])
+    container=sorted(container)
+    return container
+
+get_semester()
+        
