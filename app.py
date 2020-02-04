@@ -85,5 +85,10 @@ def sem():
     sem=dbb.get_semester()
     return jsonify(sem)
 
+@app.route("/<email>")
+def placement(email):
+    sem=dbb.demo(email)
+    return jsonify({"company":sem})
+
 if __name__ == "__main__":
     app.run(port=8088,debug=True)
