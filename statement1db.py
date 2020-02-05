@@ -28,7 +28,7 @@ def get_semester():
     return container
 
 
-def placement(name):
+def placement(usn):
     collections=db["pms_placement_student_details"]
     val=collections.find({})
     data=list()
@@ -38,7 +38,7 @@ def placement(name):
     for ele in range(0,len(data)):
         cont=data[ele]["studentList"]
         for stud in cont:
-            if name==stud["studentName"]:
+            if usn==stud["regNo"]:
                 comp=data[ele]["companyName"]
                 sal=data[ele]["salary"]
                 placed.append({"company":comp,"role":"Software Engineer","salary":sal})
@@ -48,11 +48,11 @@ def demo(email):
     collections = db["dhi_user"]
     data=collections.find({"email":email})
     for ele in data:
-        return placement(ele["name"])
+        return placement(ele["usn"])
 
 
 
-demo("mr.kirankumar4u@gmail.com")
+demo("kiranapai97@gmail.com")
 
 
 
