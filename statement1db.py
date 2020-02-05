@@ -27,14 +27,6 @@ def get_semester():
     container=sorted(container)
     return container
 
-get_semester()
-        
-def demo(email):
-    collections = db["dhi_user"]
-    data=collections.find({"email":email})
-    for ele in data:
-        placement(ele["name"])
-
 
 def placement(name):
     collections=db["pms_placement_student_details"]
@@ -50,7 +42,19 @@ def placement(name):
                 comp=data[ele]["companyName"]
                 sal=data[ele]["salary"]
                 placed.append({"company":comp,"role":"Software Engineer","salary":sal})
-    print(placed)
+    return placed
+        
+def demo(email):
+    collections = db["dhi_user"]
+    data=collections.find({"email":email})
+    for ele in data:
+        return placement(ele["name"])
+
+
+
+demo("mr.kirankumar4u@gmail.com")
+
+
 
 
         
