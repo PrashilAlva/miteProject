@@ -25,6 +25,9 @@ export class Statement1Component implements OnInit {
   showSpinner = false;
   display=false;
   testtt=false;
+  subname='';
+  dummy=[];
+  barData=[];
   constructor(private analyticsService: AnalyticsService, private authService: AuthService) { }
 
   ngOnInit() {
@@ -65,6 +68,7 @@ export class Statement1Component implements OnInit {
   }
 
   attendace_data(data) {
+    this.dummy=data;
     let dataTable = []
     dataTable.push([
       "CourseCode",
@@ -134,6 +138,16 @@ export class Statement1Component implements OnInit {
       }
   }
   onChartSelect(event:ChartSelectEvent){
-    console.log("Hello")
+    this.barData=[];
+    let arr=event.selectedRowFormattedValues;
+    this.subname=arr[0];
+    for(let i = 0; i < this.dummy.length; i += 1){
+      if(this.subname==this.dummy[i]["courseName"]){
+        for(let j=0;j<this.dummy[i]["ia_attendance_%"].length;j=j+1){
+          this.barData.push(this.dummy[i]["ia_attendance_%"][j]);
+        }
+        console.log(this.barData);
+      }
+    }
     }
 }
