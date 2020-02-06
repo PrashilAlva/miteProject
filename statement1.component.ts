@@ -24,6 +24,7 @@ export class Statement1Component implements OnInit {
   user_info;
   showSpinner = false;
   display=false;
+  testtt=false;
   constructor(private analyticsService: AnalyticsService, private authService: AuthService) { }
 
   ngOnInit() {
@@ -67,10 +68,15 @@ export class Statement1Component implements OnInit {
     let dataTable = []
     dataTable.push([
       "CourseCode",
-      "IA Marks"
+      "IA Marks %"
     ]);
     for (let i = 0; i < data.length; i += 1) {
       console.log(data[i]);
+      let marks=0;
+      for(let j = 0;j < data[i]['ia_attendance_%'].length; j += 1){
+        marks += data[i]['ia_attendance_%'][j]['obtainedMarks'];
+      }
+      console.log(marks);
       dataTable.push([data[i]['courseName'],
       data[i]['avg_ia_score']]);
     }
@@ -91,7 +97,8 @@ export class Statement1Component implements OnInit {
 
 
   graph_data(data) {
-    this.showSpinner = false
+    this.showSpinner = false,
+    this.testtt=true;
     this.title = 'Course-wise IA Marks',
       this.firstLevelChart = {
         chartType: "ColumnChart",
@@ -99,7 +106,7 @@ export class Statement1Component implements OnInit {
         options: {
           bar: { groupWidth: "20%" },
           vAxis: {
-            title: "Marks",
+            title: "Performance %",
           },
 
           height: 800,
@@ -126,7 +133,7 @@ export class Statement1Component implements OnInit {
 
       }
   }
-  second_level(event: ChartSelectEvent) {
-    console.log("Chart Event", event)
-  }
+  onChartSelect(event:ChartSelectEvent){
+    console.log("Hello")
+    }
 }
