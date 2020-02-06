@@ -71,18 +71,27 @@ export class Statement1Component implements OnInit {
     this.dummy=data;
     let dataTable = []
     dataTable.push([
-      "CourseCode",
-      "IA Marks %"
+      "CourseName",
+      "IA %", { type: 'string', role: 'tooltip' } 
     ]);
+
     for (let i = 0; i < data.length; i += 1) {
       console.log(data[i]);
-      let marks=0;
+      let obt_marks:any = 0;
+      // let mark_ia = [], ia_num=[],max_mark_ia=[],course_Name = [];
+
       for(let j = 0;j < data[i]['ia_attendance_%'].length; j += 1){
-        marks += data[i]['ia_attendance_%'][j]['obtainedMarks'];
+      
+        obt_marks +=  data[i]['ia_attendance_%'][j]['obtainedMarks'];
       }
-      console.log(marks);
+
+                    // console.log(obt_marks);
+                    // dataTable.push([data[i]['courseName'],
+                    // data[i]['avg_ia_score']]);
       dataTable.push([data[i]['courseName'],
-      data[i]['avg_ia_score']]);
+      data[i]['avg_ia_score'], 
+      "IA % : " + data[i]['avg_ia_score'] + "\n" +"IA marks : " + obt_marks
+        ])
     }
     if (dataTable.length > 1) {
       this.chart_visibility = true
@@ -146,8 +155,18 @@ export class Statement1Component implements OnInit {
         for(let j=0;j<this.dummy[i]["ia_attendance_%"].length;j=j+1){
           this.barData.push(this.dummy[i]["ia_attendance_%"][j]);
         }
-        console.log(this.barData);
       }
+      function GetSortOrder(prop) {  
+        return function(a, b) {  
+            if (a[prop] > b[prop]) {  
+                return 1;  
+            } else if (a[prop] < b[prop]) {  
+                return -1;  
+            }  
+            return 0;  
+        }  
+    }
+    this.barData.sort(GetSortOrder("iaNumber"))  
     }
     }
 }
