@@ -142,12 +142,17 @@ def get_ia_details(usn,courseCode,section,termNumber,deptId,year):
     except ZeroDivisionError:
         return ia_details,0
 
+stud = set()        # set of usn
+placed = set()          # set of placed
+tot_placed = 0
+tot_usn = 0
+
 def getAvgMarks(year,subcode,faccode):
     students=list()
     totalMarks=0
     maxMarks=0
     avg=0
-    stud = set() 
+    
     collections=dhi_internal.find({'courseCode':subcode})
     for ele in collections:
         if ele['academicYear']==year and ele['faculties'][0]['facultyGivenId']==faccode:
@@ -164,7 +169,7 @@ def getAvgMarks(year,subcode,faccode):
         avg=(totalMarks/maxMarks)*100
 
     print(stud)
-    placed = set()
+
     lst = []
     collections = mydb["pms_placement_student_details"]
     for data in collections.aggregate([{'$group':{'_id':'$studentList.regNo'}}]):
@@ -181,42 +186,65 @@ def getAvgMarks(year,subcode,faccode):
         placedPerc = (tot_placed/tot_usn)*100
     except:
         placedPerc = 0
-    return avg,placedPerc
+    return avg,placedPerc,tot_placed,tot_usn
+
+def Count(stud):
+    c = 0
+    collections = mydb["pms_placement_student_details"]
+    for st in stud:
+        c += collections.find({"studentList.regNo":st}).count()         # offers count
+    return c
             
 def getSubjects(year,sem,id):
     subjects=list()
     for data in dhi_internal.aggregate([
         {'$match':{'faculties.facultyGivenId':id,'academicYear':year,'departments.termNumber':sem}}
     ]):
-        avg,placed_avg = getAvgMarks(year,data['courseCode'],id)
+        avg,placed_avg,tot_placed,tot_usn = getAvgMarks(year,data['courseCode'],id)
         if {'courseName':data['courseName'],'courseCode':data['courseCode'],'iaAvg':avg,'placementAvg':placed_avg} not in subjects:
             subjects.append({'courseName':data['courseName'],'courseCode':data['courseCode'],'iaAvg':avg,'placementAvg':placed_avg})
     print(subjects)
     return subjects
 
 
-def getInternal(term,empid):
+def getInternal(year,term,empid):
     collections=dhi_internal.find({})
     lst=list()
+    placement=list()
     for ele in collections:
         obtained=0
         max=0
+        flag = 0
         if ele['faculties'][0]['facultyGivenId']==empid and ele['departments'][0]['termNumber']==term:
+            flag = 1
             for item in ele['studentScores']:
                 obtained=obtained+item['evaluationParameterScore'][0]['obtainedMarks']
                 max=max+item['evaluationParameterScore'][0]['maxMarks']
             obtained=obtained//len(ele['studentScores'])
             max=max//len(ele['studentScores']) 
             lst.append({'subname':ele['courseName'],'iaNum':ele['iaNumber'],'maxMarks':max,'obtainedMarks':obtained})
-    print(lst)
-    return lst
+        if flag == 1:
+            a,p,tot_placed,tot_usn=getAvgMarks(year,ele['courseCode'],empid)
+            tot_offers = Count(stud)
+            if {'subname':ele['courseName'],'usnCount':tot_usn,'placeCount':tot_placed,'offerCount':tot_offers} not in placement:
+                placement.append({'subname':ele['courseName'],'usnCount':tot_usn,'placeCount':tot_placed,'offerCount':tot_offers} )
+            # if {'subname':ele['courseName'],'iaDetails':data,'usnCount':tot_usn,'placeCount':tot_placed,'offerCount':tot_offers} not in lst:
+            #     lst.append({'subname':ele['courseName'],'iaDetails':data,'usnCount':tot_usn,'placeCount':tot_placed,'offerCount':tot_offers})
+            # else:
+            #     continue
 
-#getInternal('6','ISE577')
+            # lst.append({'subname':ele['courseName'],'iaDetails':data,'usnCount':tot_usn,'placeCount':tot_placed,'offerCount':tot_offers})
+    # print(tot_usn,tot_placed,tot_offers)
+    return lst,placement
+
+getInternal('2017-18','6','ISE577')
 
 # getSubjects('2017-18','6','ISE577')
 
 
 # getAvgMarks('2017-18','15CS61','ISE577')
+
+
 
 def get_avg_attendance(usn,courseCode,section,termNumber,deptId,year):
 

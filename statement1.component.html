@@ -301,6 +301,9 @@
               </tr>
               </tbody>
           </table>
+          <div *ngFor="let item of placeVal">
+              <p># of Students : {{item['usnCount']}} | # of Students Placed : {{item['placeCount']}} | # of Postitions : {{item['offerCount']}}</p>
+                      </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
@@ -309,4 +312,3 @@
     </div>
   </div>
 </div>
-

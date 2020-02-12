@@ -129,11 +129,11 @@ def getSubjects(year,sem,id):
     print(subjects)
     return jsonify({'subjects':subjects})
 
-@app.route('/<term>/<empid>')
-def getInternal(term,empid):
-    studPerf = st1db.getInternal(term,empid)
+@app.route('/<yearr>/<term>/<empid>')
+def getInternal(yearr,term,empid):
+    studPerf,placedDet = st1db.getInternal(yearr,term,empid)
     print(studPerf)
-    return jsonify({"Perf":studPerf})
+    return jsonify({"Perf":studPerf,"placeDet":placedDet})
 
 
 if __name__ == "__main__":

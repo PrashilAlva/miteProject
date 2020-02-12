@@ -41,6 +41,7 @@ export class Statement1Component implements OnInit {
   displayFaculty=false;
   subject;
   facultyAvg  = [];
+  placeDummy;
   constructor(private analyticsService: AnalyticsService, private authService: AuthService) { }
 
   ngOnInit() {
@@ -108,9 +109,11 @@ facultyGraph(ele){
 
 initSubjects(ele){
   this.facultyAvg=[];
-  this.analyticsService.getInternal(this.terms,ele).subscribe(res => {
+  this.analyticsService.getInternal(this.selectedyear,this.terms,ele).subscribe(res => {
     this.dummy = res["Perf"];
+    this.placeDummy=res["placeDet"]
     console.log(this.dummy)
+    console.log(this.placeDummy)
 })
 }
 
@@ -334,7 +337,7 @@ graph_dataFaculty(data){
   }
   console.log("Bardata ",this.barData)
   }
-
+  placeVal=[];
   onChartSelectFaculty(event : ChartSelectEvent)
   {
     console.log(this.dummy)
@@ -344,7 +347,13 @@ graph_dataFaculty(data){
         this.facultyAvg.push(item)
       }
     }
+    for(let item of this.placeDummy){
+      if(item['subname']==this.subname){
+        this.placeVal.push(item)
+      }
+    }
     console.log(this.facultyAvg)
+    console.log(this.placeVal)
     // console.log(event)
     // this.analyticsService.getInternal(this.subname,this.id).subscribe(res => {
     //   this.facultyAvg = res["Perf"];
