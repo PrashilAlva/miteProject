@@ -1,4 +1,6 @@
+<!---STUDENT Starts-->
 <div class="container">
+    <div *ngIf="set_role == 'STUDENT'">
     <div class="row">
         <div class="col-md-2">
             <mat-label class="labels">Academic Year</mat-label>
@@ -33,10 +35,11 @@
         <hr>
 
     </div>
+    <h1 *ngIf="notPlaced" style="text-align:center;font-weight:normal;">NO PLACEMENT OFFERS YET</h1>
 
     <div class="row" *ngIf="display">
+        <h3 style="font-weight: normal;">PLACEMENT OFFERS</h3>
         <mat-card class="example-card">
-            <mat-card-title>PLACEMENT DETAILS</mat-card-title>
         <mat-card-content *ngFor="let r of data">
            
                 <p ><b>COMPANY : </b>{{r["company"]}}</p>
@@ -61,39 +64,249 @@
 
         </div>
     </div>
+</div>
+
+<!--STUDENT Ends-->
+<!--FACULTY Starts-->
+<div *ngIf = "set_role == 'FACULTY'">
+    <div class="row">
+        <div class="col-md-2">
+            <mat-label class="labels">Academic Year</mat-label>
+            <mat-select [(ngModel)]="selectedyear">
+                <mat-option *ngFor="let year of academicYears" [value]="year">{{year}}</mat-option>
+            </mat-select>
+        </div>
+        <div class="col-md-2">
+            <mat-label class="labels">Semester</mat-label>
+            <mat-select name="terms"  [(ngModel)]="terms">
+                <mat-option *ngFor="let terms of termnumbers" [value]="terms">
+                    Semester - {{terms}}
+                </mat-option>
+            </mat-select>
+
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-primary search search-btn" (click)="facultyGraph(data);" [disabled]=clicked>
+                <i class="fa fa-search ml-0"></i> Search
+            </button>
+
+        </div>
+        <div class="col-md-6">
+
+        </div>
+        <div class="col-md-1">
+            <button class="back-button" (click)="back_()" *ngIf="chart_visibility" style="float: right; margin: 10px;">
+                <span class="fa fa-chevron-left"></span> Back</button>
+        </div>
+    </div>
+    <div class="row" *ngIf="chart_visibility">
+        <div class="col-sm-10" *ngIf="chart_visibility">
+            <div *ngIf="firstLevelChart">
+                <p class="page-title"><b>{{title}}</b></p>
+                <google-chart [data]='firstLevelChart'  data-toggle="modal" data-target="#placementID" (chartSelect)="onChartSelectFaculty($event)">
+                </google-chart>
+            </div>
+        </div>
+        <div class="col-sm-10 center" *ngIf="showSpinner">
+            <img src="../../../assets/images/gears.gif"/>
+    </div>
+        <div class="col-sm-10 center" *ngIf="error_flag">
+            <img src="../../../assets/images/Page_not_found.png" ><span><h2>Page not found!</h2></span>
+        </div>
+    </div>
+    </div>
+</div>
+<!--Faculty Ends-->
+<!--HOD Starts-->
+<div *ngIf = "set_role == 'HOD'">
+    <div class="row">
+        <div class="col-md-2">
+            <mat-label class="labels">Academic Year</mat-label>
+            <mat-select [(ngModel)]="selectedyear">
+                <mat-option *ngFor="let year of academicYears" [value]="year">{{year}}</mat-option>
+            </mat-select>
+        </div>
+        <div class="col-md-2">
+            <mat-label class="labels">Semester</mat-label>
+            <mat-select name="terms"  [(ngModel)]="terms">
+                <mat-option *ngFor="let terms of termnumbers" [value]="terms">
+                    Semester - {{terms}}
+                </mat-option>
+            </mat-select>
+
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-primary search search-btn" (click)="searchbuttonHOD();" [disabled]=clicked>
+                <i class="fa fa-search ml-0"></i> Search
+            </button>
+
+        </div>
+        <div class="col-md-6">
+
+        </div>
+        <div class="col-md-1">
+            <button class="back-button" (click)="back_()" *ngIf="chart_visibility" style="float: right; margin: 10px;">
+                <span class="fa fa-chevron-left"></span> Back</button>
+        </div>
+    </div>
+    <br><br><br>
+    <div class="row" *ngIf="displayFaculty">
+        <div class="col-md-2">
+            <h3 style="font-weight: normal;">FACULTIES LIST</h3>
+            <div *ngFor="let ele of faculties" style="margin-top: 10px">
+                <button type="button" class="btn btn-danger-outline" style="width:200px;" (click)="facultyGraph(ele)">{{ele['name']}}</button>
+            </div>
+        </div>
+        <div class="col-sm-10" *ngIf="chart_visibility">
+            <div *ngIf="firstLevelChart">
+                <p class="page-title"><b>{{title}}</b></p>
+                <google-chart [data]='firstLevelChart'  data-toggle="modal" data-target="#placementID" (chartSelect)="onChartSelectFaculty($event)">
+                </google-chart>
+            </div>
+        </div>
+        <div class="col-sm-10 center" *ngIf="showSpinner">
+            <img src="../../../assets/images/gears.gif"/>
+    </div>
+        <div class="col-sm-10 center" *ngIf="error_flag">
+            <img src="../../../assets/images/Page_not_found.png" ><span><h2>Page not found!</h2></span>
+        </div>
+    </div>
+</div>
+<!-- HOD Ends-->
+<!--Principal Starts-->
+<div *ngIf = "set_role == 'PRINCIPAL'">
+    <div class="row">
+        <div class="col-md-2">
+            <mat-label class="labels">Academic Year</mat-label>
+            <mat-select [(ngModel)]="selectedyear">
+                <mat-option *ngFor="let year of academicYears" [value]="year">{{year}}</mat-option>
+            </mat-select>
+        </div>
+        <div class="col-md-2">
+            <mat-label class="labels">Department</mat-label>
+            <mat-select [(ngModel)]="selectedDept">
+                <mat-option *ngFor="let dept of departments" [value]="dept">{{dept}}</mat-option>
+            </mat-select>
+        </div>
+        <div class="col-md-2">
+            <mat-label class="labels">Semester</mat-label>
+            <mat-select name="terms"  [(ngModel)]="terms">
+                <mat-option *ngFor="let terms of termnumbers" [value]="terms">
+                    Semester - {{terms}}
+                </mat-option>
+            </mat-select>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-primary search search-btn" (click)="searchbuttonPrincipal();" [disabled]=clicked>
+                <i class="fa fa-search ml-0"></i> Search
+            </button>
+
+        </div>
+        <div class="col-md-6">
+
+        </div>
+        <div class="col-md-1">
+            <button class="back-button" (click)="back_()" *ngIf="chart_visibility" style="float: right; margin: 10px;">
+                <span class="fa fa-chevron-left"></span> Back</button>
+        </div>
+    </div>
+    <br><br><br>
+    <div class="row" *ngIf="displayFaculty">
+        <div class="col-md-2">
+            <h3 style="font-weight: normal;">FACULTIES LIST</h3>
+            <div *ngFor="let ele of faculties" style="margin-top: 10px">
+                <button type="button" class="btn btn-danger-outline" style="width:200px;" (click)="facultyGraph(ele)">{{ele['name']}}</button>
+            </div>
+        </div>
+        <div class="col-sm-10" *ngIf="chart_visibility">
+            <div *ngIf="firstLevelChart">
+                <p class="page-title"><b>{{title}}</b></p>
+                <google-chart [data]='firstLevelChart' data-toggle="modal" data-target="#placementID" (chartSelect)="onChartSelectFaculty($event)">
+                </google-chart>
+            </div>
+        </div>
+        <div class="col-sm-10 center" *ngIf="showSpinner">
+            <img src="../../../assets/images/gears.gif"/>
+    </div>
+        <div class="col-sm-10 center" *ngIf="error_flag">
+            <img src="../../../assets/images/Page_not_found.png" ><span><h2>Page not found!</h2></span>
+        </div>
+    </div>
+</div>
+<!---Principal Ends-->
+<!--COMMON-->
+<div *ngIf = "set_role == 'STUDENT'">
     <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLongTitle"><b>Internal Assessment Details</b></h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title" id="exampleModalLongTitle"><b>Internal Assessment Details</b></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
-              </button>
+            </button>
             </div>
             <div class="modal-body">
-              <p><b>Course Name : </b>{{subname}}</p>
-              <hr>
-              <table class="table">
-                  <thead>
-                  <tr>
-                      <th>IA#</th>
-                      <th>Max. Marks</th>
-                      <th>Marks Scored</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr *ngFor="let ele of barData">
-                      <th scope="row">{{ele["iaNumber"]}}</th>
-                      <td>{{ele["maxMarks"]}}</td>
-                      <td>{{ele["obtainedMarks"]}}</td>
-                  </tr>
-                  </tbody>
-              </table>
+            <p><b>Course Name : </b>{{subname}}</p>
+            <hr>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>IA#</th>
+                    <th>Max. Marks</th>
+                    <th>Marks Scored</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let ele of barData">
+                    <th scope="row">{{ele["iaNumber"]}}</th>
+                    <td>{{ele["maxMarks"]}}</td>
+                    <td>{{ele["obtainedMarks"]}}</td>
+                </tr>
+                </tbody>
+            </table>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
             </div>
-          </div>
+        </div>
+        </div>
+    </div>
+</div>
+<div *ngIf = "set_role != 'STUDENT'" >
+    <div class="modal fade" id="placementID" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle"><b>Internal Assessment Details</b></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p><b>Course Name : </b>{{subname}}</p>
+          <hr>
+          <table class="table">
+              <thead>
+              <tr>
+                  <th>IA#</th>
+                  <th>Max. Marks</th>
+                  <th>Average Scored</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let ele of facultyAvg">
+                  <th scope="row">{{ele["iaNum"]}}</th>
+                  <td>{{ele["maxMarks"]}}</td>
+                  <td>{{ele["obtainedMarks"]}}</td>
+              </tr>
+              </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Ok</button>
         </div>
       </div>
+    </div>
+  </div>
 </div>
+

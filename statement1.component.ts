@@ -3,6 +3,7 @@ import { AnalyticsService } from '../analytics.service';
 import { AuthService } from 'src/app/auth/auth.service';
 import { GoogleChartInterface } from 'ng2-google-charts/google-charts-interfaces';
 import { ChartSelectEvent } from 'ng2-google-charts';
+import { $ } from 'protractor';
 
 
 @Component({
@@ -22,19 +23,159 @@ export class Statement1Component implements OnInit {
   terms;
   selectedyear;
   user_info;
+  selectedDept;
+  studentsPerf ;
+  dispPopUp = false;
+
   showSpinner = false;
   display=false;
   testtt=false;
   subname='';
   dummy=[];
   barData=[];
+  notPlaced=false;
+  set_role: any = "STUDENT";
+  roles = [];
+  departments=[];
+  faculties;
+  displayFaculty=false;
+  subject;
+  facultyAvg  = [];
   constructor(private analyticsService: AnalyticsService, private authService: AuthService) { }
 
   ngOnInit() {
     this.user_info = this.authService.getUserInfo()
+    console.log(this.user_info)
+    this.roles = this.user_info["roles"]
+    this.getAptRole()
     this.get_academic_years()
     this.get_term_numbers()
+    this.get_departments()
   }
+  GetSortOrder(prop) {  
+    return function(a, b) {  
+        if (a[prop] > b[prop]) {  
+            return 1;  
+        } else if (a[prop] < b[prop]) {  
+            return -1;  
+        }  
+        return 0;  
+    }  
+}
+id;
+facultyGraph(ele){
+  // console.log(ele['employeeGivenId'])
+  // console.log(this.selectedyear)
+  // console.log(this.terms)
+  console.log(ele)
+  if( this.set_role == 'FACULTY')
+  {
+    this.id=this.user_info['employeeGivenId']
+  }
+  else
+  {
+    this.id=ele['employeeGivenId']
+  }
+  this.initSubjects(this.id)
+    this.showSpinner=true;
+    this.chart_visibility = false;
+    this.error_flag=false;
+    let data = [["Subject Name", "IA score", "Placement"]]
+  this.analyticsService.getSubjects(this.selectedyear,this.terms,this.id).subscribe(res => {
+    this.subject = res['subjects']
+  },
+  err => {},
+  () => {
+    
+    for(let s of this.subject){
+      //console.log(s)
+      data.push([s['courseName'],s['iaAvg'],s['placementAvg']])
+    }
+    if(data.length > 1){
+      setTimeout(()=>{
+        this.graph_dataFaculty(data);
+      },5000)
+      // this.graph_dataFaculty(data)
+      this.error_flag = false
+    }
+    else{
+      this.showSpinner = false
+      this.error_flag = true
+    }
+  });
+
+}
+
+initSubjects(ele){
+  this.facultyAvg=[];
+  this.analyticsService.getInternal(this.terms,ele).subscribe(res => {
+    this.dummy = res["Perf"];
+    console.log(this.dummy)
+})
+}
+
+graph_dataFaculty(data){
+    this.showSpinner = false
+    this.chart_visibility = true
+    this.title = 'Course-wise Internal Marks %',
+      this.firstLevelChart = {
+        chartType: "ComboChart",
+        dataTable: data,
+        options: {
+          focusTarget: 'datum',
+          bar: { groupWidth: "20%" },
+          vAxis: {
+            title: "Percentage",
+            scaleType: 'linear',
+            maxValue : '100',
+            minValue : '0'
+          },
+
+          height: 600,
+          hAxis: {
+            title: "Courses",
+            titleTextStyle: {
+            }
+          },
+          chartArea: {
+            left: 80,
+            right: 100,
+            top: 100,
+          },
+          legend: {
+            position: "top",
+            alignment: "end"
+          },
+          seriesType: "bars",
+          colors: ["#d3ad5d", "#789d96"],
+          fontName: "Source Sans Pro, Helvetica Neue, Helvetica, Arial, sans-serif",
+          fontSize: 13,
+        }
+
+      }
+  
+      // this.analyticsService.getInternal(this.terms,this.id).subscribe(res => {
+      //   this.facultyAvg = res["Perf"];
+      // })
+}
+  getAptRole(){
+    for(let r of this.roles)
+    {
+      if(r == "PRINCIPAL"){
+        this.set_role = r;
+        break;
+      }
+      else if(r == "HOD")
+      {
+        this.set_role = r;
+      }
+      else if(r=="FACULTY"){
+        this.set_role = r;
+      }
+    }
+    console.log(this.set_role);
+  }
+
   get_academic_years() {
     this.analyticsService.get_academic_years().subscribe(res => {
       this.academicYears = res['acdemicYear']
@@ -47,6 +188,12 @@ export class Statement1Component implements OnInit {
     }
     )
   }
+
+  get_departments(){
+    this.analyticsService.get_departments().subscribe(res=>{
+      this.departments=res['departments']
+    })
+  }
   searchbutton() {
     this.showSpinner = true;
     this.placement();
@@ -57,6 +204,28 @@ export class Statement1Component implements OnInit {
     })
   }
 
+  // searchbuttonFaculty(){
+  //   alert("Yet to be implemented")
+  // }
+
+  searchbuttonHOD(){
+    this.displayFaculty=true;
+    let dept=this.user_info['employeeGivenId'][0]+this.user_info['employeeGivenId'][1]+this.user_info['employeeGivenId'][2]
+    this.analyticsService.get_faculties(this.selectedyear, this.terms, dept).subscribe(res => {
+      this.faculties = res['faculties']
+      this.faculties.sort(this.GetSortOrder("name")) 
+    });
+  }
+
+  searchbuttonPrincipal(){
+    this.displayFaculty=true;
+    this.analyticsService.get_faculties(this.selectedyear, this.terms, this.selectedDept).subscribe(res => {
+      this.faculties = res['faculties']
+      this.faculties.sort(this.GetSortOrder("name")) 
+    })
+
+  }
+
   data;
   placement()
   {
@@ -64,6 +233,8 @@ export class Statement1Component implements OnInit {
       this.data = res;
       if(this.data.length>0)
       this.display=true;
+      else
+      this.notPlaced=true;
       });
   }
 
@@ -100,6 +271,7 @@ export class Statement1Component implements OnInit {
     }
     else {
       this.error_flag = true
+      this.showSpinner=false
       this.error_message = "Data does not exist for the entered criteria"
     }
   }
@@ -146,7 +318,9 @@ export class Statement1Component implements OnInit {
 
       }
   }
+
   onChartSelect(event:ChartSelectEvent){
+    console.log('hod-event',event)
     this.barData=[];
     let arr=event.selectedRowFormattedValues;
     this.subname=arr[0];
@@ -156,17 +330,28 @@ export class Statement1Component implements OnInit {
           this.barData.push(this.dummy[i]["ia_attendance_%"][j]);
         }
       }
-      function GetSortOrder(prop) {  
-        return function(a, b) {  
-            if (a[prop] > b[prop]) {  
-                return 1;  
-            } else if (a[prop] < b[prop]) {  
-                return -1;  
-            }  
-            return 0;  
-        }  
+      this.barData.sort(this.GetSortOrder("iaNumber"))  
+  }
+  console.log("Bardata ",this.barData)
+  }
+
+  onChartSelectFaculty(event : ChartSelectEvent)
+  {
+    console.log(this.dummy)
+    this.subname = event.selectedRowFormattedValues[0];
+    for(let item of this.dummy){
+      if(item['subname']==this.subname){
+        this.facultyAvg.push(item)
+      }
     }
-    this.barData.sort(GetSortOrder("iaNumber"))  
-    }
-    }
+    console.log(this.facultyAvg)
+    // console.log(event)
+    // this.analyticsService.getInternal(this.subname,this.id).subscribe(res => {
+    //   this.facultyAvg = res["Perf"];
+    //   console.log(this.facultyAvg);
+    //   if(this.facultyAvg.length>0)
+    //   this.dispPopUp=true;
+    //   console.log(this.dispPopUp)
+    // });      
+  }
 }

@@ -1,14 +1,13 @@
 from flask import Flask, jsonify,request
 from flask_cors import CORS, cross_origin
+import statement1dbope as st1db
 from flask_pymongo import PyMongo
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity, get_jwt_claims
 
 )
-import statement1db as dbb
-
-
+import mongoflask
 app = Flask(__name__)
 CORS(app)
 
@@ -19,20 +18,21 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/dhi_analytics"
 mongo = PyMongo(app)
 # Setup the Flask-JWT-Extended extension
 
-
 app.config['JWT_SECRET_KEY'] = 'super-secret' 
 jwt = JWTManager(app)
 
 
 class UserObject:
-    def __init__(self, username, roles):
+    def __init__(self, username, roles,emlpoyeeGivenId,usn):
         self.username = username
         self.roles = roles
-
+        self.emlpoyeeGivenId = emlpoyeeGivenId
+        self.usn = usn
+ 
 
 @jwt.user_claims_loader
 def add_claims_to_access_token(user):
-    return {'roles': user.roles}
+    return {'roles': user.roles,"emlpoyeeGivenId":user.emlpoyeeGivenId,"usn":user.usn}
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
@@ -43,6 +43,8 @@ def user_identity_lookup(user):
 # it to the caller however you choose.
 @app.route('/login', methods=['POST'])
 def login():
+    emlpoyeeGivenId = ''
+    usn = ''
     if not request.is_json:
         return jsonify({"msg": "Missing JSON in request"}), 400
     username = request.json.get('username', None)
@@ -52,7 +54,11 @@ def login():
     if not user:
         return jsonify({"msg": "Bad username or password"}), 401
     roles = [ x['roleName'] for x in user['roles']]
-    user = UserObject(username=user["email"], roles=roles)
+    if 'employeeGivenId' in user:
+        emlpoyeeGivenId = user["employeeGivenId"]
+    if 'usn' in user:
+        usn = user["usn"]
+    user = UserObject(username=user["email"], roles=roles,emlpoyeeGivenId = emlpoyeeGivenId,usn = usn)
     # Identity can be any data that is json serializable
     access_token = create_access_token(identity=user,expires_delta=False)
     return jsonify(access_token=access_token), 200
@@ -60,6 +66,8 @@ def login():
 @app.route('/message')
 def message():
     return {"message":"Check you luck"}
+
+
 
 # Protect a view with jwt_required, which requires a valid access token
 # in the request to access.
@@ -70,26 +78,63 @@ def message():
 def protected():
     # Access the identity of the current user with get_jwt_identity
     ret = {
-        'user': get_jwt_identity(),  
-        'roles': get_jwt_claims()['roles'] ,
-        }
+            'user': get_jwt_identity(),  
+            'roles': get_jwt_claims()['roles'] ,
+            'employeeGivenId':get_jwt_claims()['emlpoyeeGivenId'],
+            'usn':get_jwt_claims()['usn']
+          }
+        
     return jsonify(ret), 200
 
-@app.route("/")
-def hello():
-    year=dbb.get_academic_year()
-    return jsonify({"year":year})
 
-@app.route("/semesters")
-def sem():
-    sem=dbb.get_semester()
-    return jsonify(sem)
+@app.route('/academicyear')
+def getacademicYear():
+    year = st1db.getacademicYear()
+    return jsonify({'acdemicYear':year})
+
+@app.route('/termNumber')
+def get_term_numbers():
+    terms = st1db.get_term_numbers()
+    return jsonify({'term_numbers':terms})
+
+@app.route('/departments')
+def getDepartments():
+    departments=st1db.getDept()
+    return jsonify({'departments':departments})
+
+
+@app.route("/attendancedetails/<string:usn>/<string:academicYear>/<termNumber>")
+# view all the documents present in db
+def get_attendance_details(usn, academicYear, termNumber):
+    termNumber = list(termNumber.split(','))
+    attendance_percent = st1db.get_details(usn, academicYear, termNumber)
+    return jsonify({"attendance_percent": attendance_percent})
+
 
 @app.route("/details/<email>")
 def placement(email):
-    sem=dbb.demo(email)
+    sem=st1db.demo(email)
     print(sem)
     return jsonify(sem)
 
+@app.route("/faculties/<year>/<term>/<dept>")
+def get_faculties(year,term,dept):
+    faculties=st1db.faculties(year,term,dept)
+    return jsonify({'faculties':faculties})
+
+
+@app.route('/faculties/subjects/<year>/<sem>/<id>')
+def getSubjects(year,sem,id):
+    subjects=st1db.getSubjects(year,sem,id)
+    print(subjects)
+    return jsonify({'subjects':subjects})
+
+@app.route('/<term>/<empid>')
+def getInternal(term,empid):
+    studPerf = st1db.getInternal(term,empid)
+    print(studPerf)
+    return jsonify({"Perf":studPerf})
+
+
 if __name__ == "__main__":
-    app.run(port=8088,debug=True)
+    app.run(debug=True)
